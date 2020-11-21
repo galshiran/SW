@@ -78,7 +78,6 @@ class TestSessionizing(unittest.TestCase):
             reader = csv.reader(f)
             next(reader)  # Skip first row which includes columns name
             try:
-                iteration = 1
                 row = next(reader)
                 line, visitor, site_url, page_site_url, timeframe = row
                 last_visitor = visitor
@@ -90,7 +89,6 @@ class TestSessionizing(unittest.TestCase):
 
                 while True:
                     row = next(reader)
-                    iteration += 1
                     line, visitor, site_url, page_site_url, timeframe = row
                     if visitor == last_visitor:
                         if site_url == last_site_url:
