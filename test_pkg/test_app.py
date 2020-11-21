@@ -25,7 +25,7 @@ class TestSessionizing(unittest.TestCase):
             2. Initialize naive data structure for tests.
         :return:
         """
-        input_files = glob.glob("/home/galsh/mine/sw/test/*.csv")  # Read input (csv) files from current (sw/test) directory.
+        input_files = glob.glob("*.csv")  # Read input (csv) files from current (sw/test) directory.
         if not self.sessionizing:
             self.sessionizing = Sessionizing()
             self.sessionizing.initialize(*input_files)
@@ -33,25 +33,25 @@ class TestSessionizing(unittest.TestCase):
             self.merge_and_sort_input_files(*input_files)
             self.process_input_files()
 
-    # def test_visitor_count(self):
-    #     visitors = list(self.users_unique_sites_dict.keys())
-    #     for i in range(len(visitors)):
-    #         naive_data = self.users_unique_sites_dict[visitors[i]]
-    #         sessionizing_data = self.sessionizing.visitors[visitors[i]].unique_sites
-    #         try:
-    #             self.assertEqual(naive_data, sessionizing_data)
-    #         except AssertionError:
-    #             print("Visitor {} unique sites number {} != {}".format(visitors[i], naive_data, sessionizing_data))
-    #
-    # def test_session_count_per_site(self):
-    #     sites = list(self.sites_session_counter.keys())
-    #     for i in range(len(sites)):
-    #         naive_data = self.sites_session_counter[sites[i]]
-    #         sessionizing_data = self.sessionizing.sites[sites[i]].num_of_sessions
-    #         try:
-    #             self.assertEqual(naive_data, sessionizing_data)
-    #         except AssertionError:
-    #             print("Site {} sessions number {} != {}".format(sites[i], naive_data, sessionizing_data))
+    def test_visitor_count(self):
+        visitors = list(self.users_unique_sites_dict.keys())
+        for i in range(len(visitors)):
+            naive_data = self.users_unique_sites_dict[visitors[i]]
+            sessionizing_data = self.sessionizing.visitors[visitors[i]].unique_sites
+            try:
+                self.assertEqual(naive_data, sessionizing_data)
+            except AssertionError:
+                print("Visitor {} unique sites number {} != {}".format(visitors[i], naive_data, sessionizing_data))
+
+    def test_session_count_per_site(self):
+        sites = list(self.sites_session_counter.keys())
+        for i in range(len(sites)):
+            naive_data = self.sites_session_counter[sites[i]]
+            sessionizing_data = self.sessionizing.sites[sites[i]].num_of_sessions
+            try:
+                self.assertEqual(naive_data, sessionizing_data)
+            except AssertionError:
+                print("Site {} sessions number {} != {}".format(sites[i], naive_data, sessionizing_data))
 
     def test_session_median_per_site(self):
         sites = list(self.sites_sessions_length.keys())
@@ -74,7 +74,7 @@ class TestSessionizing(unittest.TestCase):
         return median_data
 
     def process_input_files(self):
-        with open('/home/galsh/mine/sw/merged.csv') as f:
+        with open('merged.csv') as f:
             reader = csv.reader(f)
             next(reader)  # Skip first row which includes columns name
             try:
@@ -126,7 +126,7 @@ class TestSessionizing(unittest.TestCase):
         dfs = [pd.read_csv(f, header=None, sep=",") for f in args]
         df = pd.concat(dfs, ignore_index=True)
         df.sort_values([0, 1, 3], ascending=(True, True, True), inplace=True)
-        df.to_csv("/home/galsh/mine/sw/merged.csv")
+        df.to_csv("merged.csv")
 
 
 if __name__ == '__main__':
