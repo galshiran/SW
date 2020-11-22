@@ -1,7 +1,7 @@
 from flask import Flask, request, make_response
 
 from sessionizing import *
-from logger import *
+from logger.logger import *
 
 app = Flask(__name__)  # Create the flask app
 sessionizing = Sessionizing()  # Main Sessionizing instance which holds all the processed data from input files.
@@ -32,7 +32,7 @@ def initialize():
     return make_response(response)
 
 
-@app.route('/usersites/', methods=["GET"])
+@app.route('/visitorsites/', methods=["GET"])
 def get_unique_sites_per_user():
     """
     Use with GET method.
@@ -43,12 +43,16 @@ def get_unique_sites_per_user():
     global sessionizing
     response = ""
     response_pattern = "Num of unique sites for {} = {}\n"
+    error_pattern = "Visitor {} does not exist\n"
     visitors_ids = request.args['ids'].split(",")
     visitors_ids = list(map(str.strip, visitors_ids))
 
     for visitor_id in visitors_ids:
         visitor = sessionizing.visitors.get(visitor_id)
-        response += response_pattern.format(visitor_id, visitor.unique_sites)
+        if visitor:
+            response += response_pattern.format(visitor_id, visitor.unique_sites)
+        else:
+            response += error_pattern.format(visitor_id)
 
     logger.info(response)
     return make_response(response)
@@ -65,12 +69,16 @@ def get_site_sessions_number():
     global sessionizing
     response = ""
     response_pattern = "Num sessions for site {} = {}\n"
+    error_pattern = "Site {} does not exist"
     sites_urls = request.args['urls'].split(",")
     sites_urls = list(map(str.strip, sites_urls))
 
     for site_url in sites_urls:
         site = sessionizing.sites.get(site_url)
-        response += response_pattern.format(site_url, site.num_of_sessions)
+        if site:
+            response += response_pattern.format(site_url, site.num_of_sessions)
+        else:
+            response += error_pattern(site_url)
 
     logger.info(response)
     return make_response(response)
@@ -86,13 +94,17 @@ def get_site_median_session_length():
     """
     global sessionizing
     response = ""
-    response_pattern = "Num sessions for site {} = {}\n"
+    response_pattern = "Median session length for site {} = {}\n"
+    error_pattern = "Site {} does not exist"
     sites_urls = request.args['urls'].split(",")
     sites_urls = list(map(str.strip, sites_urls))
 
     for site_url in sites_urls:
         site = sessionizing.sites.get(site_url)
-        response += response_pattern.format(site_url, site.get_site_sessions_median())
+        if site:
+            response += response_pattern.format(site_url, site.get_site_sessions_median())
+        else:
+            response += error_pattern.format(site_url)
 
     logger.info(response)
     return make_response(response)

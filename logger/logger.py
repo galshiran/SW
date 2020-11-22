@@ -6,7 +6,7 @@ import logging
 logging.getLogger('werkzeug').disabled = True
 
 # Set logger configuration
-logger_file_name = "results.txt"
+logger_file_name = "logger/results.txt"
 logger_dir = dirname(abspath(sys.modules['__main__'].__file__))
 logger_file_path = join(logger_dir, logger_file_name)
 
