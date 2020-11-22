@@ -7,6 +7,13 @@ import pandas as pd
 
 from sessionizing import Sessionizing
 
+"""
+Notice:
+Change the following variables according to your environment
+"""
+PATH_TO_INPUT_FILES = '/home/galsh/production/SW/*.csv'
+TEST_RESULTS_FILE = '/home/galsh/production/SW/test_pkg/test_results.txt'
+
 
 class TestSessionizing(unittest.TestCase):
     def __init__(self, *args):
@@ -25,7 +32,7 @@ class TestSessionizing(unittest.TestCase):
             2. Initialize naive data structure for tests.
         :return:
         """
-        input_files = glob.glob("*.csv")  # Read input (csv) files from current (sw/test) directory.
+        input_files = glob.glob(PATH_TO_INPUT_FILES)  # Read input (csv) files from current (sw/test) directory.
         if not self.sessionizing:
             self.sessionizing = Sessionizing()
             self.sessionizing.initialize(*input_files)
@@ -34,35 +41,47 @@ class TestSessionizing(unittest.TestCase):
             self.process_input_files()
 
     def test_visitor_count(self):
-        visitors = list(self.users_unique_sites_dict.keys())
-        for i in range(len(visitors)):
-            naive_data = self.users_unique_sites_dict[visitors[i]]
-            sessionizing_data = self.sessionizing.visitors[visitors[i]].unique_sites
-            try:
-                self.assertEqual(naive_data, sessionizing_data)
-            except AssertionError:
-                print("Visitor {} unique sites number {} != {}".format(visitors[i], naive_data, sessionizing_data))
+        log_print = "Visitor {} unique sites number: test: {}, sessionizing_app: {}\n"
+        with open(TEST_RESULTS_FILE, "a+") as results:
+            visitors = list(self.users_unique_sites_dict.keys())
+            for i in range(len(visitors)):
+                naive_data = self.users_unique_sites_dict[visitors[i]]
+                sessionizing_data = self.sessionizing.visitors[visitors[i]].unique_sites
+                try:
+                    self.assertEqual(naive_data, sessionizing_data)
+                    results.write(log_print.format(visitors[i], naive_data, sessionizing_data))
+                except AssertionError:
+                    log_print = "Error: {}".format(log_print.format((visitors[i], naive_data, sessionizing_data)))
+                    results.write(log_print)
 
     def test_session_count_per_site(self):
-        sites = list(self.sites_session_counter.keys())
-        for i in range(len(sites)):
-            naive_data = self.sites_session_counter[sites[i]]
-            sessionizing_data = self.sessionizing.sites[sites[i]].num_of_sessions
-            try:
-                self.assertEqual(naive_data, sessionizing_data)
-            except AssertionError:
-                print("Site {} sessions number {} != {}".format(sites[i], naive_data, sessionizing_data))
+        log_print = "Session number per {} site: test: {}, sessionizing_app: {}\n"
+        with open(TEST_RESULTS_FILE, "a+") as results:
+            sites = list(self.sites_session_counter.keys())
+            for i in range(len(sites)):
+                naive_data = self.sites_session_counter[sites[i]]
+                sessionizing_data = self.sessionizing.sites[sites[i]].num_of_sessions
+                try:
+                    self.assertEqual(naive_data, sessionizing_data)
+                    results.write(log_print.format(sites[i], naive_data, sessionizing_data))
+                except AssertionError:
+                    log_print = "Error: {}".format(log_print.format(sites[i], naive_data, sessionizing_data))
+                    results.write(log_print)
 
     def test_session_median_per_site(self):
-        sites = list(self.sites_sessions_length.keys())
-        for i in range(len(sites)):
-            naive_data = self.sites_sessions_length[sites[i]]
-            naive_median = self._get_median_session(naive_data, sites[i])
-            sessionizing_data = self.sessionizing.sites[sites[i]].get_site_sessions_median()
-            try:
-                self.assertEqual(naive_median, sessionizing_data)
-            except AssertionError:
-                print("Site {} median {} != {}".format(sites[i], naive_median, sessionizing_data))
+        log_print = "Session median per {} site: test: {}, sessionizing_app: {}\n"
+        with open(TEST_RESULTS_FILE, "a+") as results:
+            sites = list(self.sites_sessions_length.keys())
+            for i in range(len(sites)):
+                naive_data = self.sites_sessions_length[sites[i]]
+                naive_median = self._get_median_session(naive_data, sites[i])
+                sessionizing_data = self.sessionizing.sites[sites[i]].get_site_sessions_median()
+                try:
+                    self.assertEqual(naive_median, sessionizing_data)
+                    results.write(log_print.format(sites[i], naive_median, sessionizing_data))
+                except AssertionError:
+                    log_print = "Error: {}".format(log_print.format(sites[i], naive_median, sessionizing_data))
+                    results.write(log_print)
 
     def _get_median_session(self, session_list, site):
         median_index = int(len(session_list) / 2)
@@ -94,7 +113,8 @@ class TestSessionizing(unittest.TestCase):
                         if site_url == last_site_url:
                             if int(timeframe) - int(last_session_timeframe) > 1800:
                                 self.sites_session_counter[site_url] += 1
-                                self.sites_sessions_length[site_url].append(int(last_session_timeframe) - int(first_session_timeframe))
+                                self.sites_sessions_length[site_url].append(
+                                    int(last_session_timeframe) - int(first_session_timeframe))
                                 first_session_timeframe = timeframe
                         else:
                             self.users_unique_sites_dict[visitor] += 1
@@ -102,9 +122,9 @@ class TestSessionizing(unittest.TestCase):
                                 self.sites_session_counter[site_url] += 1
                             else:
                                 self.sites_session_counter[site_url] = 1
-                            last_site_url = site_url
-                            self.sites_sessions_length[site_url].append(
+                            self.sites_sessions_length[last_site_url].append(
                                 int(last_session_timeframe) - int(first_session_timeframe))
+                            last_site_url = site_url
                             first_session_timeframe = timeframe
                     else:
                         self.users_unique_sites_dict[visitor] = 1
@@ -113,12 +133,14 @@ class TestSessionizing(unittest.TestCase):
                         else:
                             self.sites_session_counter[site_url] = 1
                         last_visitor = visitor
-                        last_site_url = site_url
-                        self.sites_sessions_length[site_url].append(
+                        self.sites_sessions_length[last_site_url].append(
                             int(last_session_timeframe) - int(first_session_timeframe))
+                        last_site_url = site_url
                         first_session_timeframe = timeframe
                     last_session_timeframe = timeframe
             except StopIteration:
+                self.sites_sessions_length[last_site_url].append(
+                    int(last_session_timeframe) - int(first_session_timeframe))
                 for k in self.sites_sessions_length.keys():
                     self.sites_sessions_length[k].sort()
 
