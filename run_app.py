@@ -69,7 +69,7 @@ def get_site_sessions_number():
     global sessionizing
     response = ""
     response_pattern = "Num sessions for site {} = {}\n"
-    error_pattern = "Site {} does not exist"
+    error_pattern = "Site {} does not exist\n"
     sites_urls = request.args['urls'].split(",")
     sites_urls = list(map(str.strip, sites_urls))
 
@@ -78,7 +78,7 @@ def get_site_sessions_number():
         if site:
             response += response_pattern.format(site_url, site.num_of_sessions)
         else:
-            response += error_pattern(site_url)
+            response += error_pattern.format(site_url)
 
     logger.info(response)
     return make_response(response)
@@ -95,7 +95,7 @@ def get_site_median_session_length():
     global sessionizing
     response = ""
     response_pattern = "Median session length for site {} = {}\n"
-    error_pattern = "Site {} does not exist"
+    error_pattern = "Site {} does not exist\n"
     sites_urls = request.args['urls'].split(",")
     sites_urls = list(map(str.strip, sites_urls))
 
